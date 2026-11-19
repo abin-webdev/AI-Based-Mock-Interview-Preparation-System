@@ -5,7 +5,10 @@ import 'package:mock_interview/send_complaint.dart';
 import 'package:mock_interview/view_applied_vacancy.dart';
 import 'package:mock_interview/view_profile.dart';
 import 'package:mock_interview/view_vacancy.dart';
+<<<<<<< HEAD
 import 'package:mock_interview/ai_mock_interview.dart';
+=======
+>>>>>>> 5fa9406e445a4b96883c849f36837fcf83e4c690
 
 import 'login.dart';
 import 'send_feedback.dart';
@@ -68,6 +71,7 @@ class _HomePageState extends State<userHomePAge> {
             const SizedBox(height: 10),
 
             const SizedBox(height: 40),
+<<<<<<< HEAD
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -86,6 +90,8 @@ class _HomePageState extends State<userHomePAge> {
             ),
 
             const SizedBox(height: 20),
+=======
+>>>>>>> 5fa9406e445a4b96883c849f36837fcf83e4c690
             ElevatedButton(
               onPressed: () {
                 Navigator.push(

@@ -641,9 +641,12 @@ class _MyLoginPageState extends State<MyLoginPage> {
         if (status == 'ok') {
           String lid = data['lid'].toString();
           await sh.setString("lid", lid);
+<<<<<<< HEAD
           if (data.containsKey('token')) {
             await sh.setString("token", data['token'].toString());
           }
+=======
+>>>>>>> 5fa9406e445a4b96883c849f36837fcf83e4c690
 
           if (type == "user") {
             Navigator.pushReplacement(
