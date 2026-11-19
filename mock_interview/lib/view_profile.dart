@@ -732,7 +732,6 @@
 //   }
 // }
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
@@ -741,6 +740,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'config/api_config.dart';
 
 import 'edit_profile.dart';
 
@@ -863,15 +863,16 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
 
   Future<void> _fetchProfile() async {
     SharedPreferences sh = await SharedPreferences.getInstance();
-    String url = sh.getString('url') ?? "";
-    String lid = sh.getString('lid') ?? "";
-    String imgUrl = sh.getString('img_url') ?? "";
+    final String baseUrl = await ApiConfig.getBaseUrl();
+    String lid = sh.getString('lid') ?? sh.getString('user_id') ?? "";
+    String imgUrl = sh.getString('img_url') ?? baseUrl;
 
     setState(() => img_url_ = imgUrl);
 
     try {
+      final String apiUrl = ApiConfig.legacyUserProfile(baseUrl);
       final response =
-      await http.post(Uri.parse('$url/user_profile/'), body: {'lid': lid});
+      await http.post(Uri.parse(apiUrl), body: {'lid': lid});
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'ok') {

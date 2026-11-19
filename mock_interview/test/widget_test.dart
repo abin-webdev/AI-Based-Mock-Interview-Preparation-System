@@ -1,30 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:mock_interview/main.dart';
+import 'package:mock_interview/login.dart';
+import 'package:mock_interview/company_register.dart';
+import 'package:mock_interview/notifications_page.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Login page renders essential authentication UI widgets', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: MyLogin()));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('SIGN IN'), findsWidgets);
+    expect(find.byType(ElevatedButton), findsWidgets);
+    expect(find.text('New Candidate? '), findsOneWidget);
+    expect(find.text('Register Company'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('Company registration screen renders required input fields', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: CompanyRegisterPage()));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify company form header and fields (including offstage scrollable children)
+    expect(find.text('Register as Company'), findsOneWidget);
+    expect(find.text('Company Information'), findsOneWidget);
+    expect(find.text('Company Name *'), findsOneWidget);
+    expect(find.text('Corporate Email *', skipOffstage: false), findsOneWidget);
+    expect(find.text('Contact Phone Number *', skipOffstage: false), findsOneWidget);
+    expect(find.text('Register Company', skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('Notifications page renders properly with actions', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: NotificationsPage()));
+
+    expect(find.text('Notifications'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }

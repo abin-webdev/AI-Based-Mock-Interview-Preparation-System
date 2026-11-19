@@ -424,9 +424,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'config/api_config.dart';
 
 import '../login.dart';
 
@@ -506,32 +506,30 @@ class RegisterPageState extends State<RegisterPage> {
 
   Future<void> _sendData() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-
-      SharedPreferences sh = await SharedPreferences.getInstance();
-      String? url = sh.getString('url');
-
-      if (url == null) {
-        Fluttertoast.showToast(msg: "Server URL not found.");
-        setState(() => _isLoading = false);
+      if (_passwordController.text != _cpasswordController.text) {
+        Fluttertoast.showToast(msg: "Passwords do not match!");
         return;
       }
 
-      final uri = Uri.parse('$url/user_registration/');
+      setState(() => _isLoading = true);
+
+      final baseUrl = await ApiConfig.getBaseUrl();
+      final uri = Uri.parse(ApiConfig.legacyUserRegistration(baseUrl));
       var request = http.MultipartRequest('POST', uri);
 
-      request.fields['name'] = _nameController.text;
-      request.fields['email'] = _emailController.text;
-      request.fields['place'] = _placeController.text;
-      request.fields['dob'] = _dobController.text;
-      request.fields['phone'] = _phoneController.text;
+      request.fields['name'] = _nameController.text.trim();
+      request.fields['email'] = _emailController.text.trim();
+      request.fields['place'] = _placeController.text.trim();
+      request.fields['dob'] = _dobController.text.trim();
+      request.fields['phone'] = _phoneController.text.trim();
       request.fields['password'] = _passwordController.text;
-      request.fields['post'] = _postController.text;
-      request.fields['pin'] = _pinController.text;
-      request.fields['gender'] = _genderController.text;
-      request.fields['city'] = _cityController.text;
-      request.fields['state'] = _stateController.text;
+      request.fields['post'] = _postController.text.trim();
+      request.fields['pin'] = _pinController.text.trim();
+      request.fields['gender'] = _genderController.text.trim();
+      request.fields['city'] = _cityController.text.trim();
+      request.fields['state'] = _stateController.text.trim();
       request.fields['cpassword'] = _cpasswordController.text;
+      request.fields['confirm_password'] = _cpasswordController.text;
 
       if (_selectedImage != null) {
         if (await _selectedImage!.exists()) {

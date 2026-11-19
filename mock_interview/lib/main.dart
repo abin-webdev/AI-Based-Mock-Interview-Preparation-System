@@ -90,6 +90,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
+import 'config/api_config.dart';
 
 void main() {
   runApp(const MyApp());
@@ -125,6 +126,21 @@ class ip extends StatefulWidget {
 class _MyHomePageState extends State<ip> {
   final TextEditingController _textController = TextEditingController();
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController.text = ApiConfig.productionBaseUrl;
+    _checkSavedSession();
+  }
+
+  Future<void> _checkSavedSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUrl = prefs.getString('base_api_url') ?? prefs.getString('url');
+    if (savedUrl != null && savedUrl.isNotEmpty) {
+      _textController.text = savedUrl;
+    }
+  }
 
   // Elegant color scheme
   static const Color primaryPurple = Color(0xFF6C5CE7);
@@ -375,6 +391,25 @@ class _MyHomePageState extends State<ip> {
                               ),
                             ),
                           ),
+
+                          const SizedBox(height: 15),
+
+                          // Quick 1-tap Production Cloud Connect
+                          OutlinedButton.icon(
+                            onPressed: _connectToProduction,
+                            icon: const Icon(Icons.cloud_done_rounded, color: primaryPurple),
+                            label: const Text(
+                              "Use Live Render Cloud (Production)",
+                              style: TextStyle(color: primaryPurple, fontWeight: FontWeight.bold),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(50),
+                              side: const BorderSide(color: primaryPurple, width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -398,27 +433,26 @@ class _MyHomePageState extends State<ip> {
     );
   }
 
-  void _sendData() async {
-    String ipAddress = _textController.text.trim();
+  void _connectToProduction() {
+    _textController.text = ApiConfig.productionBaseUrl;
+    _sendData();
+  }
 
-    if (ipAddress.isEmpty) {
-      Fluttertoast.showToast(
-        msg: 'Please enter IP address',
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-      return;
+  void _sendData() async {
+    String input = _textController.text.trim();
+
+    if (input.isEmpty) {
+      input = ApiConfig.productionBaseUrl;
     }
 
-    // Simple IP validation pattern
-    RegExp ipPattern = RegExp(r'^(\d{1,3}\.){3}\d{1,3}$');
-    if (!ipPattern.hasMatch(ipAddress)) {
-      Fluttertoast.showToast(
-        msg: 'Please enter a valid IP address',
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-      return;
+    String formattedUrl = input;
+    if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+      // Check if it looks like an IP
+      formattedUrl = 'http://$formattedUrl:8000';
+    }
+
+    if (formattedUrl.endsWith('/')) {
+      formattedUrl = formattedUrl.substring(0, formattedUrl.length - 1);
     }
 
     setState(() {
@@ -427,12 +461,16 @@ class _MyHomePageState extends State<ip> {
 
     try {
       SharedPreferences sh = await SharedPreferences.getInstance();
-      sh.setString('url', 'http://$ipAddress:8000/myapp');
-      sh.setString('img_url', 'http://$ipAddress:8000');
-      sh.setString('img_url2', 'http://$ipAddress:8000/media/');
+      await sh.setString('base_api_url', formattedUrl);
+      await sh.setString('url', '$formattedUrl/myapp');
+      await sh.setString('img_url', formattedUrl);
+      await sh.setString('img_url2', '$formattedUrl/media/');
 
-      // Simulate network delay for better UX
-      await Future.delayed(const Duration(seconds: 1));
+      Fluttertoast.showToast(
+        msg: 'Connected to server successfully',
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
 
       if (mounted) {
         Navigator.pushReplacement(
@@ -444,7 +482,7 @@ class _MyHomePageState extends State<ip> {
       }
     } catch (e) {
       Fluttertoast.showToast(
-        msg: 'Error saving configuration',
+        msg: 'Error saving configuration: $e',
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );

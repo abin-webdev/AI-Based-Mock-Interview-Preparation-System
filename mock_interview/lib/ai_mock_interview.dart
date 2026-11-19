@@ -212,8 +212,21 @@ class _AIMockInterviewScreenState extends State<AIMockInterviewScreen> {
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['status'] == 'ok') {
+        // Fetch detailed results scorecard
+        try {
+          final resultsUrl = Uri.parse(ApiConfig.aiMockResults(baseUrl, _sessionId!));
+          final resResponse = await http.get(resultsUrl, headers: ApiConfig.getHeaders(token: token));
+          final resData = jsonDecode(resResponse.body);
+          if (resData is Map<String, dynamic>) {
+            _resultsData = resData;
+          } else {
+            _resultsData = data['results'] ?? data['summary'];
+          }
+        } catch (_) {
+          _resultsData = data['results'] ?? data['summary'];
+        }
+
         setState(() {
-          _resultsData = data['results'];
           _stage = InterviewStage.results;
         });
       } else {

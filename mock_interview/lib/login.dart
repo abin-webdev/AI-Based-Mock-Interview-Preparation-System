@@ -1,3 +1,4 @@
+// import 'dart:async';
 // import 'dart:convert';
 // import 'package:flutter/material.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
@@ -212,11 +213,15 @@
 //   }
 // }
 //
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mock_interview/register.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mock_interview/company_register.dart';
+import 'package:mock_interview/company_home.dart';
+import 'package:mock_interview/config/api_config.dart';
+import 'package:mock_interview/services/api_client.dart';
 import 'package:http/http.dart' as http;
 
 import 'home.dart';
@@ -498,12 +503,12 @@ class _MyLoginPageState extends State<MyLoginPage> {
 
                           const SizedBox(height: 25),
 
-                          // Register link
+                          // Register links
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "Don't have an account? ",
+                                "New Candidate? ",
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 14,
@@ -519,9 +524,40 @@ class _MyLoginPageState extends State<MyLoginPage> {
                                   );
                                 },
                                 child: Text(
-                                  "Sign Up",
+                                  "Register here",
                                   style: TextStyle(
                                     color: Colors.deepPurple[400],
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Hiring Manager? ",
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const CompanyRegisterPage(),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  "Register Company",
+                                  style: TextStyle(
+                                    color: Color(0xFF1E3A8A),
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -612,58 +648,85 @@ class _MyLoginPageState extends State<MyLoginPage> {
       _isLoading = true;
     });
 
-    SharedPreferences sh = await SharedPreferences.getInstance();
-    String? url = sh.getString('url');
-
-    if (url == null || url.isEmpty) {
-      Fluttertoast.showToast(msg: 'Server URL not configured');
-      setState(() {
-        _isLoading = false;
-      });
-      return;
-    }
-
-    final urls = Uri.parse('$url/User_login/');
     try {
+      final baseUrl = await ApiConfig.getBaseUrl();
+      final urls = Uri.parse(ApiConfig.legacyUserLogin(baseUrl));
+
       final response = await http.post(
         urls,
         body: {'Username': uname, 'Password': password},
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        String status = data['status'].toString();
-        String message = data['message'].toString();
-        String type = data['type'].toString();
-
-        Fluttertoast.showToast(msg: message);
+        String status = data['status']?.toString() ?? 'no';
+        String message = data['message']?.toString() ?? '';
+        String type = data['type']?.toString().toLowerCase() ?? 'user';
 
         if (status == 'ok') {
-          String lid = data['lid'].toString();
-          await sh.setString("lid", lid);
-<<<<<<< HEAD
-          if (data.containsKey('token')) {
-            await sh.setString("token", data['token'].toString());
-          }
-=======
->>>>>>> 5fa9406e445a4b96883c849f36837fcf83e4c690
+          String lid = data['lid']?.toString() ?? '';
+          String token = data['token']?.toString() ?? data['access']?.toString() ?? '';
+          String refresh = data['refresh']?.toString() ?? '';
 
-          if (type == "user") {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => userHomePAge()),
-            );
+          await ApiClient().saveAuthSession(
+            access: token,
+            refresh: refresh,
+            role: type == 'company' ? 'COMPANY' : 'CANDIDATE',
+            userId: lid,
+            email: uname,
+          );
+
+          Fluttertoast.showToast(
+            msg: message.isNotEmpty ? message : "Welcome!",
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+          );
+
+          if (mounted) {
+            if (type == "company") {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const CompanyHomePage()),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const userHomePAge()),
+              );
+            }
           }
+        } else {
+          Fluttertoast.showToast(
+            msg: message.isNotEmpty ? message : 'Invalid username or password',
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+          );
         }
       } else {
-        Fluttertoast.showToast(msg: 'Server error: ${response.statusCode}');
+        Fluttertoast.showToast(
+          msg: 'Server error: ${response.statusCode}',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
+    } on TimeoutException {
+      Fluttertoast.showToast(
+        msg: 'Connection timeout. Render server may be starting up, please try again.',
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
     } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
+      Fluttertoast.showToast(
+        msg: 'Error: $e',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 }

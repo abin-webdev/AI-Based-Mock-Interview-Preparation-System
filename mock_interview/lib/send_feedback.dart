@@ -194,6 +194,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'config/api_config.dart';
 
 class SendFeedback extends StatefulWidget {
   const SendFeedback({super.key});
@@ -230,29 +231,36 @@ class _CompState extends State<SendFeedback> {
     });
 
     SharedPreferences prefer = await SharedPreferences.getInstance();
-    String? url = prefer.getString('url');
-    String? lid = prefer.getString('lid');
+    String? lid = prefer.getString('lid') ?? prefer.getString('user_id');
+    final String baseUrl = await ApiConfig.getBaseUrl();
+    final String targetUrl = ApiConfig.legacySendFeedback(baseUrl);
 
     try {
       final res = await http.post(
-        Uri.parse('$url/send_feedback/'),
+        Uri.parse(targetUrl),
         body: {
           'feedback': complaint.text.trim().toString(),
-          'lid': lid
+          'lid': lid ?? '',
         },
       );
 
       // ---------------- RESPONSE ----------------
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-
-        Fluttertoast.showToast(
-          msg: "Feedback submitted successfully!",
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-        );
-
-        complaint.clear();
+        if (data['status'] == 'ok' || data['status'] == 'success') {
+          Fluttertoast.showToast(
+            msg: "Feedback submitted successfully!",
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+          );
+          complaint.clear();
+        } else {
+          Fluttertoast.showToast(
+            msg: data['message']?.toString() ?? "Failed to submit feedback",
+            backgroundColor: accentCoral,
+            textColor: Colors.white,
+          );
+        }
       } else {
         Fluttertoast.showToast(
           msg: "Failed to submit Feedback!",

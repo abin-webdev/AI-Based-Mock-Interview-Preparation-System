@@ -918,7 +918,9 @@ class Send_complaintPageState extends State<Send_complaintPage> {
 
       request.fields['complaint'] = complaint;
       request.fields['lid'] = lid;
-      request.fields['company'] = _selectedCompany!;
+      if (_selectedCompany != null) {
+        request.fields['company'] = _selectedCompany!;
+      }
 
       var response = await request.send();
       var respStr = await response.stream.bytesToString();

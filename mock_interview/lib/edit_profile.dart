@@ -1068,7 +1068,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
-
+import 'config/api_config.dart';
 import 'home.dart';
 
 class EditprofilePage extends StatefulWidget {
@@ -1137,17 +1137,18 @@ class _MyEditState extends State<EditprofilePage> {
     setState(() => _isLoading = true);
 
     SharedPreferences sh = await SharedPreferences.getInstance();
-    String urls = sh.getString('url') ?? '';
-    String lid = sh.getString('lid') ?? '';
-    String img_url = sh.getString('img_url') ?? '';
+    final String baseUrl = await ApiConfig.getBaseUrl();
+    String lid = sh.getString('lid') ?? sh.getString('user_id') ?? '';
+    String img_url = sh.getString('img_url') ?? baseUrl;
 
     setState(() {
       img_url_ = img_url;
     });
 
     try {
+      final String apiUrl = ApiConfig.legacyUserProfileViewForEdit(baseUrl);
       var res = await http.post(
-        Uri.parse('$urls/user_profileviewforedit/'),
+        Uri.parse(apiUrl),
         body: {'lid': lid},
       );
 
@@ -1189,11 +1190,12 @@ class _MyEditState extends State<EditprofilePage> {
     setState(() => _isLoading = true);
 
     SharedPreferences sh = await SharedPreferences.getInstance();
-    String urls = sh.getString('url') ?? '';
-    String lid = sh.getString('lid') ?? '';
+    final String baseUrl = await ApiConfig.getBaseUrl();
+    String lid = sh.getString('lid') ?? sh.getString('user_id') ?? '';
 
     try {
-      var request = http.MultipartRequest('POST', Uri.parse('$urls/user_edit_profile/'));
+      final String apiUrl = ApiConfig.legacyUserEditProfile(baseUrl);
+      var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
       request.fields['lid'] = lid;
       request.fields['name'] = nameController.text.trim();
       request.fields['place'] = placeController.text.trim();

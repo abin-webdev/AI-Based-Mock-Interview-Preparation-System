@@ -275,6 +275,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'config/api_config.dart';
 
 class Sendreview extends StatefulWidget {
   const Sendreview({super.key});
@@ -331,15 +332,16 @@ class _SendreviewState extends State<Sendreview> {
     setState(() => _isLoading = true);
 
     SharedPreferences prefer = await SharedPreferences.getInstance();
-    String? url = prefer.getString('url');
-    String? lid = prefer.getString('lid');
+    String? lid = prefer.getString('lid') ?? prefer.getString('user_id');
+    final String baseUrl = await ApiConfig.getBaseUrl();
+    final String apiUrl = ApiConfig.legacyReviewCompany(baseUrl);
 
     try {
       final res = await http.post(
-        Uri.parse('$url/review_company/'),
+        Uri.parse(apiUrl),
         body: {
           'review': reviewController.text.trim(),
-          'lid': lid,
+          'lid': lid ?? '',
           'rating': rating.toString(),
           'Company_id': _selectedCompany
         },
@@ -386,14 +388,14 @@ class _SendreviewState extends State<Sendreview> {
   }
 
   Future<void> getcompany() async {
-    SharedPreferences sh = await SharedPreferences.getInstance();
-    String? a = sh.getString('url');
     try {
-      final res = await http.post(Uri.parse('$a/companytocomplaint/'));
+      final String baseUrl = await ApiConfig.getBaseUrl();
+      final String apiUrl = ApiConfig.legacyCompanyDropdown(baseUrl);
+      final res = await http.post(Uri.parse(apiUrl));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         setState(() {
-          g = data['data'];
+          g = data['data'] ?? [];
         });
       }
     } catch (e) {

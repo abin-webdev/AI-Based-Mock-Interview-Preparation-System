@@ -186,6 +186,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:file_picker/file_picker.dart';
+import 'config/api_config.dart';
 
 import 'home.dart';
 
@@ -225,10 +226,10 @@ class ViewVacancyPageState extends State<ViewVacancyPage> {
   Future<void> viewUsers() async {
     try {
       SharedPreferences sh = await SharedPreferences.getInstance();
-      String urls = sh.getString('url') ?? '';
       String lid = sh.getString('lid') ?? '';
+      final baseUrl = await ApiConfig.getBaseUrl();
+      String apiUrl = ApiConfig.legacyViewVacancy(baseUrl);
 
-      String apiUrl = '$urls/user_view_vacancy/';
       var response = await http.post(Uri.parse(apiUrl), body: {'lid': lid});
       var jsonData = json.decode(response.body);
 
@@ -249,33 +250,30 @@ class ViewVacancyPageState extends State<ViewVacancyPage> {
         });
       }
     } catch (e) {
-      print("Error fetching : $e");
+      Fluttertoast.showToast(msg: "Error loading vacancies: $e");
     }
   }
 
   Future<void> applyVacancy(String vacancyId) async {
     try {
-      // 🔹 Pick Resume File
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx'],
       );
 
       if (result == null) {
-        Fluttertoast.showToast(msg: "Please select a resume");
+        Fluttertoast.showToast(msg: "Please select a resume file");
         return;
       }
 
       File file = File(result.files.single.path!);
 
       SharedPreferences sh = await SharedPreferences.getInstance();
-      String urls = sh.getString('url') ?? '';
       String lid = sh.getString('lid') ?? '';
-
-      String apiUrl = '$urls/user_apply_vacancy/';
+      final baseUrl = await ApiConfig.getBaseUrl();
+      String apiUrl = ApiConfig.legacyApplyVacancy(baseUrl);
 
       var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
-
       request.fields['lid'] = lid;
       request.fields['vacancy_id'] = vacancyId;
 
@@ -291,14 +289,20 @@ class ViewVacancyPageState extends State<ViewVacancyPage> {
       var jsonData = json.decode(responseData);
 
       if (jsonData['status'] == 'ok') {
-        Fluttertoast.showToast(msg: 'Submitted successfully');
+        Fluttertoast.showToast(
+          msg: jsonData['message'] ?? 'Application submitted successfully!',
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
       } else {
-        Fluttertoast.showToast(msg: 'Application failed');
+        Fluttertoast.showToast(
+          msg: jsonData['message'] ?? 'Application failed',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
-
     } catch (e) {
-      print("Apply Error: $e");
-      Fluttertoast.showToast(msg: "Error uploading resume");
+      Fluttertoast.showToast(msg: "Error uploading resume: $e");
     }
   }
 
