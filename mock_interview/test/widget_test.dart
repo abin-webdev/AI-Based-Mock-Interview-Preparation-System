@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mock_interview/main.dart';
 import 'package:mock_interview/login.dart';
 import 'package:mock_interview/company_register.dart';
 import 'package:mock_interview/notifications_page.dart';
 
 void main() {
+  testWidgets('MyApp startup loads Login screen directly without Server Configuration', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    // Verify it displays Login screen directly
+    expect(find.text('SIGN IN'), findsWidgets);
+    expect(find.text('Server Configuration'), findsNothing);
+  });
+
   testWidgets('Login page renders essential authentication UI widgets', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: MyLogin()));
     await tester.pumpAndSettle();

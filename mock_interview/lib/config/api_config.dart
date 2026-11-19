@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiConfig {
@@ -6,6 +7,26 @@ class ApiConfig {
   // ----------------------------------------------------
   // Deployed Live Production Backend on Render:
   static const String productionBaseUrl = 'https://ai-mock-interview-backend-nklz.onrender.com';
+
+  // ----------------------------------------------------
+  // INITIALIZER FOR PRODUCTION STARTUP
+  // ----------------------------------------------------
+  static Future<void> initializeDefaultProduction() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? configuredUrl = prefs.getString('base_api_url') ?? prefs.getString('url');
+    final bool isInvalid = configuredUrl == null ||
+        configuredUrl.isEmpty ||
+        (kIsWeb && (configuredUrl.contains('localhost') ||
+                    configuredUrl.contains('127.0.0.1') ||
+                    configuredUrl.startsWith('http://192.') ||
+                    configuredUrl.startsWith('http://10.')));
+
+    if (isInvalid) {
+      await prefs.setString('base_api_url', productionBaseUrl);
+      await prefs.setString('url', '$productionBaseUrl/myapp');
+      await prefs.setString('img_url', productionBaseUrl);
+    }
+  }
 
   // ----------------------------------------------------
   // DYNAMIC URL RESOLVER
@@ -22,6 +43,10 @@ class ApiConfig {
       // Strip legacy /myapp suffix if saved previously
       if (clean.endsWith('/myapp')) {
         clean = clean.substring(0, clean.length - 6);
+      }
+      // On web release, prevent unencrypted http/localhost requests
+      if (kIsWeb && (clean.contains('localhost') || clean.startsWith('http://'))) {
+        return productionBaseUrl;
       }
       if (clean.startsWith('http://') || clean.startsWith('https://')) {
         return clean;

@@ -7,6 +7,7 @@
 // import 'package:http/http.dart' as http;
 //
 // import 'home.dart';
+// import 'main.dart';
 //
 // void main() {
 //   runApp( mylogin());
@@ -225,6 +226,7 @@ import 'package:mock_interview/services/api_client.dart';
 import 'package:http/http.dart' as http;
 
 import 'home.dart';
+import 'main.dart';
 
 void main() {
   runApp(MyLogin());
@@ -303,6 +305,22 @@ class _MyLoginPageState extends State<MyLoginPage> {
                 shape: BoxShape.circle,
                 color: Colors.white.withOpacity(0.1),
               ),
+            ),
+          ),
+
+          // Developer settings shortcut (for local dev / debug only)
+          Positioned(
+            top: 40,
+            right: 16,
+            child: IconButton(
+              icon: const Icon(Icons.settings_outlined, color: Colors.white38, size: 22),
+              tooltip: 'Developer Server Config',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ip(title: 'Server Configuration')),
+                );
+              },
             ),
           ),
 

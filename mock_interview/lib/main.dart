@@ -91,8 +91,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
 import 'config/api_config.dart';
+import 'services/api_client.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ApiClient().init();
   runApp(const MyApp());
 }
 
@@ -103,13 +106,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'IP Configuration',
+      title: 'AI Mock Interview',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
         fontFamily: 'Poppins',
       ),
-      home: const ip(title: 'Server Configuration'),
+      home: const MyLoginPage(title: 'AI Mock Interview'),
     );
   }
 }

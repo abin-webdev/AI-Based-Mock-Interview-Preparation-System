@@ -23,6 +23,11 @@ class ApiClient {
 
   final http.Client _httpClient = http.Client();
 
+  /// Initialize default production configuration on app startup
+  Future<void> init() async {
+    await ApiConfig.initializeDefaultProduction();
+  }
+
   // ----------------------------------------------------
   // TOKEN STORAGE HELPERS
   // ----------------------------------------------------
