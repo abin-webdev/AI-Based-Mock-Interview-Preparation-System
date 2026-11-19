@@ -1,0 +1,372 @@
+[
+  {
+    "endpoint": "/api/health/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "{\"status\": \"healthy\"}",
+    "actual_resp": "{\"status\": \"healthy\", \"system\": \"AI-Based Mock Interview Preparation System\", \"version\": \"1.0.0\"}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/docs/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "HTML Swagger UI",
+    "actual_resp": "Length: 4679",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/schema/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "OpenAPI 3.0 schema YAML/JSON",
+    "actual_resp": "Length: 106467",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/auth/token/ (CORS OPTIONS)",
+    "method": "OPTIONS",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Access-Control-Allow-Origin header present",
+    "actual_resp": "{'Date': 'Thu, 19 Nov 2026 16:02:27 GMT', 'Content-Type': 'text/html; charset=utf-8', 'Transfer-Encoding': 'chunked', 'Connection': 'keep-alive', 'access-control-allow-credentials': 'true', 'access-control-allow-headers': 'accept, authorization, content-type, user-agent, x-csrftoken, x-requested-wit",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/auth/register/candidate/",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "expected_resp": "User & Profile created with tokens",
+    "actual_resp": "{'status': 'ok', 'message': 'Candidate registered successfully.', 'user': {'id': 4, 'username': 'cand_ffdec274', 'email': 'candidate_ffdec274@testinterview.org', 'role': 'CANDIDATE', 'is_active': True, 'created_at': '2026-11-19T16:02:31.240039Z', 'updated_at': '2026-11-19T16:02:31.240048Z'}, 'tokens",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/auth/token/ (Candidate Login)",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "access & refresh JWT tokens",
+    "actual_resp": "{'access_present': True, 'role': 'CANDIDATE'}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/auth/token/refresh/",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "new access token",
+    "actual_resp": "{\"access\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzk1MTA3NzU0LCJpYXQiOjE3OTUxMDQxNTQsImp0aSI6IjBjNTZlNWExMWI0NjRhZDY5YjcyZGIzMjUxZDk5Zjg0IiwidXNlcl9pZCI6IjQifQ.RoC19KMxgQTLMnDgm2FsoNp-ILdP13e816GdtKMiNcU\",\"refresh\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tl",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/auth/me/ (Candidate)",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "User profile info",
+    "actual_resp": "{\"id\":4,\"username\":\"cand_ffdec274\",\"email\":\"candidate_ffdec274@testinterview.org\",\"role\":\"CANDIDATE\",\"is_active\":true,\"created_at\":\"2026-11-19T16:02:31.240039Z\",\"updated_at\":\"2026-11-19T16:02:31.240048Z\",\"candidate_details\":{\"full_name\":\"Candidate Test ffdec274\",\"phone\":\"+15551234567\",\"dob\":null,\"ge",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/candidates/profile/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Candidate profile details",
+    "actual_resp": "{\"id\":2,\"username\":\"cand_ffdec274\",\"email\":\"candidate_ffdec274@testinterview.org\",\"full_name\":\"Candidate Test ffdec274\",\"phone\":\"+15551234567\",\"dob\":null,\"gender\":\"\",\"place\":\"Silicon Valley\",\"post\":\"\",\"city\":\"San Jose\",\"state\":\"California\",\"pin\":\"95112\",\"photo\":null,\"resume\":null,\"qualifications\":\"\"",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/candidates/profile/ (Update)",
+    "method": "PUT",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Updated candidate profile",
+    "actual_resp": "{\"status\":\"ok\",\"message\":\"Profile updated successfully.\",\"profile\":{\"id\":2,\"username\":\"cand_ffdec274\",\"email\":\"candidate_ffdec274@testinterview.org\",\"full_name\":\"Candidate Test ffdec274\",\"phone\":\"+15551234567\",\"dob\":null,\"gender\":\"\",\"place\":\"San Francisco\",\"post\":\"\",\"city\":\"San Francisco\",\"state\":\"C",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/candidates/dashboard/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Candidate dashboard summary stats",
+    "actual_resp": "{\"candidate\":{\"id\":2,\"full_name\":\"Candidate Test ffdec274\",\"email\":\"candidate_ffdec274@testinterview.org\",\"profile_completeness_percentage\":44,\"has_resume\":false,\"has_photo\":false},\"applications\":{\"total_applied\":0,\"pending\":0,\"shortlisted\":0,\"accepted\":0,\"rejected\":0},\"ai_interviews\":{\"total_sessio",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/auth/register/company/",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "expected_resp": "Company user & profile created",
+    "actual_resp": "{'status': 'ok', 'message': 'Company registered successfully. Account is pending admin verification.', 'user': {'id': 5, 'username': 'comp_ffdec274', 'email': 'company_ffdec274@technova.org', 'role': 'COMPANY', 'is_active': True, 'created_at': '2026-11-19T16:02:38.541750Z', 'updated_at': '2026-11-19",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/auth/token/ (Company Login)",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "access & refresh JWT tokens",
+    "actual_resp": "{'access_present': True, 'role': 'COMPANY'}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/companies/profile/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Company profile details",
+    "actual_resp": "{\"id\":2,\"user_email\":\"company_ffdec274@technova.org\",\"company_name\":\"TechNova Global ffdec274\",\"email\":\"company_ffdec274@technova.org\",\"phone\":\"+15559876543\",\"address\":\"100 Silicon Blvd, Suite 400\",\"website\":\"https://technovaglobal.example.com\",\"description\":\"Leading cloud & AI solutions provider\",\"",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/companies/dashboard/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Company dashboard metrics",
+    "actual_resp": "{\"company\":{\"id\":2,\"name\":\"TechNova Global ffdec274\",\"verification_status\":\"PENDING\",\"is_verified\":false},\"vacancies\":{\"total\":0,\"active\":0},\"applications\":{\"total\":0,\"pending\":0,\"shortlisted\":0,\"accepted\":0,\"rejected\":0},\"reviews\":{\"count\":0,\"average_rating\":0.0}}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/companies/vacancies/ (Verification Gate)",
+    "method": "POST",
+    "status_code": 403,
+    "expected_status": 403,
+    "passed": true,
+    "expected_resp": "403 Forbidden (requires verification) or 201 Created",
+    "actual_resp": "{\"status\":\"error\",\"message\":\"Your account status is 'PENDING'. Only approved and verified companies can publish job vacancies.\"}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/vacancies/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Public vacancy list",
+    "actual_resp": "{\"count\":0,\"next\":null,\"previous\":null,\"results\":[]}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/applications/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Candidate application list",
+    "actual_resp": "{\"count\":0,\"next\":null,\"previous\":null,\"results\":[]}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/ai-interviews/sessions/",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "expected_resp": "Session created in CREATED state",
+    "actual_resp": "{'status': 'ok', 'message': 'Mock interview session created with 3 dynamically generated questions.', 'session': {'id': 3, 'candidate': 2, 'candidate_name': 'Candidate Test ffdec274', 'job_role': 'Python Django Backend Engineer', 'category': 'TECHNICAL', 'difficulty': 'MID', 'question_count': 3, 'du",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/ai-interviews/sessions/3/start/",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Session in IN_PROGRESS, questions generated",
+    "actual_resp": "{\"status\":\"ok\",\"message\":\"Mock interview session started.\",\"session_id\":3,\"started_at\":\"2026-11-19T16:02:48.516590Z\"}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/ai-interviews/sessions/3/questions/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "List of generated questions",
+    "actual_resp": "[{'id': 7, 'session_id': 3, 'question_number': 1, 'question_text': 'In Python Django Backend Engineer, how do you optimize Django ORM queries to prevent the N+1 database query problem?', 'category': 'TECHNICAL', 'expected_keywords': 'select_related, prefetch_related, database hits, SQL joins, query ",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/ai-interviews/sessions/3/submit-answer/",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "expected_resp": "Answer recorded",
+    "actual_resp": "{\"status\":\"ok\",\"message\":\"Answer submitted successfully.\",\"answer\":{\"id\":2,\"session\":3,\"question\":7,\"question_number\":1,\"question_text\":\"In Python Django Backend Engineer, how do you optimize Django ORM queries to prevent the N+1 database query problem?\",\"answer_text\":\"To resolve N+1 queries in Djan",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/ai-interviews/sessions/3/camera-telemetry/",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Camera telemetry recorded",
+    "actual_resp": "{\"status\":\"ok\",\"message\":\"Camera telemetry recorded successfully.\",\"telemetry\":{\"id\":2,\"session_id\":3,\"consent_given\":true,\"frames_processed\":40,\"centered_posture_percentage\":\"91.50\",\"head_stability_score\":\"86.00\",\"eye_contact_ratio\":\"88.00\",\"observations\":\"Maintained consistent central posture thro",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/ai-interviews/sessions/3/complete/",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Session COMPLETED with scores and feedback",
+    "actual_resp": "{\"status\":\"ok\",\"message\":\"Mock interview evaluated and completed successfully.\",\"summary\":{\"session_id\":3,\"overall_score\":26.38,\"summary_feedback\":\"[Needs Development - 26.38%] The candidate answered fundamental aspects of Python Django Backend Engineer, but requires further preparation on core term",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/ai-interviews/sessions/3/results/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Complete evaluation result breakdown",
+    "actual_resp": "{\"id\":3,\"candidate_id\":2,\"candidate_name\":\"Candidate Test ffdec274\",\"candidate_email\":\"candidate_ffdec274@testinterview.org\",\"job_role\":\"Python Django Backend Engineer\",\"category\":\"TECHNICAL\",\"difficulty\":\"MID\",\"status\":\"COMPLETED\",\"overall_score\":\"26.38\",\"summary_feedback\":\"[Needs Development - 26.",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/reports/mock-interviews/3/pdf/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "PDF binary stream with application/pdf header",
+    "actual_resp": "Content-Type: application/pdf, bytes: 5397",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/feedback/",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "expected_resp": "Feedback submitted",
+    "actual_resp": "{\"id\":2,\"user\":4,\"user_email\":\"candidate_ffdec274@testinterview.org\",\"user_name\":\"Candidate Test ffdec274\",\"feedback_text\":\"Excellent AI Mock Interview experience. Immediate scoring and evaluation were very helpful.\",\"created_at\":\"2026-11-19T16:02:52.556854Z\"}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/feedback/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "My submitted feedback list",
+    "actual_resp": "{\"count\":1,\"next\":null,\"previous\":null,\"results\":[{\"id\":2,\"user\":4,\"user_email\":\"candidate_ffdec274@testinterview.org\",\"user_name\":\"Candidate Test ffdec274\",\"feedback_text\":\"Excellent AI Mock Interview experience. Immediate scoring and evaluation were very helpful.\",\"created_at\":\"2026-11-19T16:02:52",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/complaints/",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "expected_resp": "Complaint/Inquiry registered",
+    "actual_resp": "{\"id\":2,\"company_id\":null,\"complaint_text\":\"Inquiry regarding interview rescheduling guidelines and technical evaluation criteria.\",\"status\":\"PENDING\",\"created_at\":\"2026-11-19T16:02:53.209118Z\"}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/complaints/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "My complaints list",
+    "actual_resp": "{\"count\":1,\"next\":null,\"previous\":null,\"results\":[{\"id\":2,\"user\":4,\"user_email\":\"candidate_ffdec274@testinterview.org\",\"company\":null,\"complaint_text\":\"Inquiry regarding interview rescheduling guidelines and technical evaluation criteria.\",\"status\":\"PENDING\",\"reply\":\"\",\"replied_by\":null,\"replied_at\"",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/notifications/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Notifications list",
+    "actual_resp": "{\"count\":0,\"next\":null,\"previous\":null,\"results\":[]}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/notifications/mark-all-read/",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "Mark all notifications read",
+    "actual_resp": "{\"status\":\"ok\",\"message\":\"0 notification(s) marked as read.\"}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/myapp/User_login/ (Legacy Mobile Form-encoded)",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "{'status': 'ok', 'type': 'candidate'}",
+    "actual_resp": "{\"status\":\"ok\",\"lid\":\"4\",\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzk1MTA3Nzc3LCJpYXQiOjE3OTUxMDQxNzcsImp0aSI6Ijk0MjUzNTIwNjg1MTQ0ZDc4YThhZjM5ZjBlOTJhNzlmIiwidXNlcl9pZCI6IjQifQ.jw-KK32GaUEHGwecMdoHGL9Fk02clPyPrM0frh6NK5Y\",\"access\":\"eyJhbGciOiJIUzI1NiIsInR",
+    "notes": ""
+  },
+  {
+    "endpoint": "/myapp/user_view_vacancy/ (Legacy Vacancies)",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "expected_resp": "{'status': 'ok', 'data': [...]}",
+    "actual_resp": "{\"status\":\"ok\",\"data\":[]}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/companies/vacancies/ (Candidate RBAC test)",
+    "method": "POST",
+    "status_code": 403,
+    "expected_status": 403,
+    "passed": true,
+    "expected_resp": "403 Forbidden (Only companies can post)",
+    "actual_resp": "{\"detail\":\"You do not have permission to perform this action.\"}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/ai-interviews/.../submit-answer/ (Company RBAC test)",
+    "method": "POST",
+    "status_code": 403,
+    "expected_status": 403,
+    "passed": true,
+    "expected_resp": "403 Forbidden (Only candidate owner)",
+    "actual_resp": "{\"detail\":\"You do not have permission to perform this action.\"}",
+    "notes": ""
+  },
+  {
+    "endpoint": "/api/v1/auth/me/ (Unauthenticated)",
+    "method": "GET",
+    "status_code": 401,
+    "expected_status": 401,
+    "passed": true,
+    "expected_resp": "401 Unauthorized",
+    "actual_resp": "{\"detail\":\"Authentication credentials were not provided.\"}",
+    "notes": ""
+  }
+]
