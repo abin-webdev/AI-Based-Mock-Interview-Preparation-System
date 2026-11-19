@@ -1,8 +1,17 @@
 import logging
 from decimal import Decimal
 from typing import Dict, Any, Optional
-import numpy as np
-import cv2
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+
 from .models import AIMockSession, CameraTelemetryReport
 from apps.candidates.models import CandidateProfile
 
@@ -41,7 +50,7 @@ def record_camera_telemetry(
     observation_notes = []
 
     # If raw frame image is provided, process with OpenCV
-    if frame_bytes:
+    if frame_bytes and cv2 is not None and np is not None:
         try:
             nparr = np.frombuffer(frame_bytes, np.uint8)
             img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
