@@ -1,6 +1,5 @@
 [build]
-  base = "mock_interview"
-  publish = "build/web"
+  publish = "mock_interview/build/web"
 
 [[redirects]]
   from = "/*"
@@ -11,6 +10,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
     Access-Control-Allow-Origin = "*"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"

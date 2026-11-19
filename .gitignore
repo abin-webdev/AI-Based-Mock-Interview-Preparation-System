@@ -12,11 +12,13 @@ backend/media/
 # Flutter / Dart
 .dart_tool/
 .packages
-build/
+build/*
+!build/web/
 .flutter-plugins
 .flutter-plugins-dependencies
 mock_interview/.dart_tool/
-mock_interview/build/
+mock_interview/build/*
+!mock_interview/build/web/
 
 # IDE / OS
 .DS_Store

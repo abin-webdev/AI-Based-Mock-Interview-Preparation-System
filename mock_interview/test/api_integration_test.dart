@@ -63,12 +63,12 @@ void main() {
     test('Live backend is alive and accessible', () async {
       final response = await http.get(
         Uri.parse('https://ai-mock-interview-backend-nklz.onrender.com/api/v1/vacancies/'),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 45));
       expect(response.statusCode, 200);
       final decoded = json.decode(response.body);
       expect(decoded, isA<Map<String, dynamic>>());
       expect(decoded.containsKey('results'), true);
-    });
+    }, timeout: const Timeout(Duration(seconds: 60)));
 
     test('Candidate registration validation correctly handles mismatched passwords', () async {
       final response = await http.post(
@@ -79,8 +79,8 @@ void main() {
           'password': 'Password123!',
           'confirm_password': 'MismatchedPassword999!',
         }),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 45));
       expect(response.statusCode, 400);
-    });
+    }, timeout: const Timeout(Duration(seconds: 60)));
   });
 }

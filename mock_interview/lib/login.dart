@@ -226,7 +226,7 @@ import 'package:mock_interview/services/api_client.dart';
 import 'package:http/http.dart' as http;
 
 import 'home.dart';
-import 'main.dart';
+import 'server_config.dart';
 
 void main() {
   runApp(MyLogin());
@@ -318,7 +318,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ip(title: 'Server Configuration')),
+                  MaterialPageRoute(builder: (context) => const ServerConfigPage(title: 'Server Configuration')),
                 );
               },
             ),
