@@ -1,0 +1,26 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+db.sqlite3
+backend/.env
+backend/staticfiles/
+backend/media/
+.env
+
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+mock_interview/.dart_tool/
+mock_interview/build/
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
