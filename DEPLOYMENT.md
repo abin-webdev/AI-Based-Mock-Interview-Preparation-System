@@ -90,6 +90,29 @@ The backend includes a pre-configured Render Blueprint (`render.yaml`) and Gunic
 | `ENABLE_CAMERA_ANALYSIS`| No | `True` | Enables OpenCV posture and facial alignment telemetry. |
 | `JWT_ACCESS_TOKEN_LIFETIME_MINUTES` | No | `60` | JWT access token lifespan in minutes. |
 | `JWT_REFRESH_TOKEN_LIFETIME_DAYS` | No | `7` | JWT refresh token lifespan in days. |
+| `DJANGO_SUPERUSER_EMAIL` | Optional (One-time) | None | Email for initial production superuser creation. |
+| `DJANGO_SUPERUSER_USERNAME` | Optional (One-time) | None | Username for initial production superuser. |
+| `DJANGO_SUPERUSER_PASSWORD` | Optional (One-time) | None | Password for initial production superuser. |
+
+---
+
+### 4. Creating the Production Superuser (No Shell Required)
+
+On Render's Free Plan, the web terminal shell is unavailable. You can safely create or update the initial Django superuser without a shell using our automated `create_initial_admin` command:
+
+1. In the **Render Dashboard**, open your web service (`ai-mock-interview-backend`).
+2. Navigate to the **Environment** tab.
+3. Add the following environment variables:
+   - `DJANGO_SUPERUSER_EMAIL`: e.g. `admin@mockinterview.org`
+   - `DJANGO_SUPERUSER_USERNAME`: e.g. `admin`
+   - `DJANGO_SUPERUSER_PASSWORD`: `YourSecurePassword123!`
+4. Click **Save Changes** and click **Manual Deploy** > **Deploy latest commit**.
+5. During the build phase, `build.sh` automatically runs `python manage.py create_initial_admin`:
+   - It securely hashes the password via Django's PBKDF2 algorithm.
+   - It assigns `role='ADMIN'`, `is_staff=True`, and `is_superuser=True`.
+   - Passwords are never logged or exposed.
+   - The command is completely **idempotent** (safe to run on every deploy; will not duplicate users).
+6. *(Optional)* After first login at `https://<your-app>.onrender.com/admin/`, you can delete `DJANGO_SUPERUSER_PASSWORD` from Render's Environment tab if desired.
 
 ---
 

@@ -33,6 +33,12 @@ services:
         sync: false
       - key: ENABLE_CAMERA_ANALYSIS
         value: "True"
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
       - key: JWT_ACCESS_TOKEN_LIFETIME_MINUTES
         value: "60"
       - key: JWT_REFRESH_TOKEN_LIFETIME_DAYS

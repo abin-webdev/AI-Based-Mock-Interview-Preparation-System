@@ -14,4 +14,7 @@ python manage.py collectstatic --no-input
 echo "==> Applying database migrations..."
 python manage.py migrate
 
+echo "==> Ensuring initial superuser (if credentials provided in env)..."
+python manage.py create_initial_admin
+
 echo "==> Build completed successfully!"
