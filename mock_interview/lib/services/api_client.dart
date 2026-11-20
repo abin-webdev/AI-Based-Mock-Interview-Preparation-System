@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
@@ -207,6 +208,8 @@ class ApiClient {
     required String method,
     Map<String, String>? fields,
     Map<String, File>? files,
+    Map<String, Uint8List>? fileBytes,
+    Map<String, String>? fileNames,
     bool requiresAuth = true,
   }) async {
     final uri = Uri.parse(url);
@@ -221,13 +224,24 @@ class ApiClient {
       request.fields.addAll(fields);
     }
 
+    if (fileBytes != null) {
+      for (final entry in fileBytes.entries) {
+        final filename = fileNames?[entry.key] ?? '${entry.key}_${DateTime.now().millisecondsSinceEpoch}';
+        request.files.add(
+          http.MultipartFile.fromBytes(entry.key, entry.value, filename: filename),
+        );
+      }
+    }
+
     if (files != null) {
       for (final entry in files.entries) {
-        if (await entry.value.exists()) {
+        try {
+          final bytes = await entry.value.readAsBytes();
+          final filename = entry.value.path.split(RegExp(r'[/\\]')).last;
           request.files.add(
-            await http.MultipartFile.fromPath(entry.key, entry.value.path),
+            http.MultipartFile.fromBytes(entry.key, bytes, filename: filename),
           );
-        }
+        } catch (_) {}
       }
     }
 

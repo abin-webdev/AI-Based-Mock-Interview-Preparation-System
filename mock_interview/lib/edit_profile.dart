@@ -1266,10 +1266,6 @@ class _MyEditState extends State<EditprofilePage> {
             filename: _imageName ?? 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
           ),
         );
-      } else if (_imageFile != null) {
-        try {
-          request.files.add(await http.MultipartFile.fromPath('photo', _imageFile!.path));
-        } catch (_) {}
       }
 
       if (_resumeBytes != null && _resumeBytes!.isNotEmpty) {
