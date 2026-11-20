@@ -175,8 +175,8 @@ class AuthenticationPhase3Tests(TestCase):
         self.assertEqual(data['type'], 'company')
         self.assertEqual(data['lid'], str(self.company_user.id))
 
-    def test_legacy_flutter_login_company_pending_restricted(self):
-        # Create pending company
+    def test_legacy_flutter_login_company_pending_allowed(self):
+        """Verify pending company can log in to portal to check status and profile."""
         pending_user = User.objects.create_user(
             email='pending@company.com',
             username='pendingcomp',
@@ -196,8 +196,9 @@ class AuthenticationPhase3Tests(TestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
-        self.assertEqual(data['status'], 'no')
-        self.assertIn('PENDING', data['message'])
+        self.assertEqual(data['status'], 'ok')
+        self.assertEqual(data['type'], 'company')
+        self.assertEqual(data['verification_status'], 'PENDING')
 
     def test_legacy_flutter_login_invalid_credentials(self):
         response = self.client.post('/myapp/User_login/', {

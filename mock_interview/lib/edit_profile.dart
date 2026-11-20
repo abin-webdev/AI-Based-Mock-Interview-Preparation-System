@@ -1063,8 +1063,10 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
@@ -1094,6 +1096,12 @@ class _MyEditState extends State<EditprofilePage> {
   TextEditingController genderController = TextEditingController();
 
   File? _imageFile;
+  Uint8List? _imageBytes;
+  String? _imageName;
+
+  Uint8List? _resumeBytes;
+  String? _resumeName;
+
   String photo_ = "";
   String img_url_ = "";
   bool _isLoading = false;
@@ -1124,12 +1132,53 @@ class _MyEditState extends State<EditprofilePage> {
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _imageFile = File(picked.path);
-      });
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+      if (picked != null) {
+        final bytes = await picked.readAsBytes();
+        setState(() {
+          _imageBytes = bytes;
+          _imageName = picked.name;
+        });
+        Fluttertoast.showToast(msg: "Photo selected");
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Error selecting image: $e");
+    }
+  }
+
+  Future<void> _pickResume() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx'],
+        withData: true,
+      );
+      if (result != null && result.files.isNotEmpty) {
+        final platformFile = result.files.first;
+        Uint8List? bytes = platformFile.bytes;
+        if (bytes == null && platformFile.path != null) {
+          try {
+            bytes = await File(platformFile.path!).readAsBytes();
+          } catch (_) {}
+        }
+        if (bytes != null && bytes.isNotEmpty) {
+          setState(() {
+            _resumeBytes = bytes;
+            _resumeName = platformFile.name;
+            resumeController.text = platformFile.name;
+          });
+          Fluttertoast.showToast(msg: "Resume selected: ${platformFile.name}");
+        }
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Error selecting resume: $e");
     }
   }
 
@@ -1209,8 +1258,28 @@ class _MyEditState extends State<EditprofilePage> {
       request.fields['resume'] = resumeController.text.trim();
       request.fields['dob'] = dobController.text.trim();
 
-      if (_imageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath('photo', _imageFile!.path));
+      if (_imageBytes != null && _imageBytes!.isNotEmpty) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'photo',
+            _imageBytes!,
+            filename: _imageName ?? 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          ),
+        );
+      } else if (_imageFile != null) {
+        try {
+          request.files.add(await http.MultipartFile.fromPath('photo', _imageFile!.path));
+        } catch (_) {}
+      }
+
+      if (_resumeBytes != null && _resumeBytes!.isNotEmpty) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'resume',
+            _resumeBytes!,
+            filename: _resumeName ?? 'resume_${DateTime.now().millisecondsSinceEpoch}.pdf',
+          ),
+        );
       }
 
       var response = await request.send();
@@ -1375,12 +1444,14 @@ class _MyEditState extends State<EditprofilePage> {
                             child: CircleAvatar(
                               radius: 65,
                               backgroundColor: Colors.white,
-                              backgroundImage: _imageFile != null
-                                  ? FileImage(_imageFile!)
-                                  : (finalImageUrl.isNotEmpty
-                                  ? NetworkImage(finalImageUrl) as ImageProvider
-                                  : const AssetImage('assets/person.png')),
-                              child: _imageFile == null && finalImageUrl.isEmpty
+                              backgroundImage: _imageBytes != null
+                                  ? MemoryImage(_imageBytes!)
+                                  : (_imageFile != null
+                                      ? FileImage(_imageFile!)
+                                      : (finalImageUrl.isNotEmpty
+                                          ? NetworkImage(finalImageUrl) as ImageProvider
+                                          : const AssetImage('assets/person.png'))),
+                              child: _imageBytes == null && _imageFile == null && finalImageUrl.isEmpty
                                   ? Icon(Icons.person, size: 65, color: Colors.deepPurple[200])
                                   : null,
                             ),
@@ -1783,7 +1854,48 @@ class _MyEditState extends State<EditprofilePage> {
                               label: "Resume URL / File Name",
                               icon: Icons.picture_as_pdf,
                             ),
-                            if (resumeController.text.isNotEmpty)
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: _pickResume,
+                              icon: const Icon(Icons.upload_file, color: Colors.deepPurple),
+                              label: Text(
+                                _resumeBytes != null ? "Change Resume (${_resumeName ?? 'Selected'})" : "Upload New Resume (PDF)",
+                                style: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.w600),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: _resumeBytes != null ? Colors.green : Colors.deepPurple,
+                                  width: 1.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              ),
+                            ),
+                            if (_resumeBytes != null)
+                              Container(
+                                margin: const EdgeInsets.only(top: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade50,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Colors.green.shade300),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        "New resume ready to upload: $_resumeName",
+                                        style: TextStyle(fontSize: 12, color: Colors.green.shade800, fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (_resumeBytes == null && resumeController.text.isNotEmpty)
                               Container(
                                 margin: const EdgeInsets.only(top: 8),
                                 padding: const EdgeInsets.all(12),

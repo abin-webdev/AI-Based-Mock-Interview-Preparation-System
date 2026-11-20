@@ -420,6 +420,7 @@
 //
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -461,8 +462,10 @@ class RegisterPageState extends State<RegisterPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _cpasswordController = TextEditingController();
 
-  File? _selectedImage;
-  File? _selectedResume;
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
+  Uint8List? _selectedResumeBytes;
+  String? _selectedResumeName;
   bool _isLoading = false;
 
   Future<void> _chooseImage() async {
@@ -476,13 +479,15 @@ class RegisterPageState extends State<RegisterPage> {
       );
 
       if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
         setState(() {
-          _selectedImage = File(pickedFile.path);
+          _selectedImageBytes = bytes;
+          _selectedImageName = pickedFile.name;
         });
         Fluttertoast.showToast(msg: "Image selected successfully");
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: "Failed to pick image");
+      Fluttertoast.showToast(msg: "Failed to pick image: $e");
     }
   }
 
@@ -490,17 +495,31 @@ class RegisterPageState extends State<RegisterPage> {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf'],
+        allowedExtensions: ['pdf', 'doc', 'docx'],
+        withData: true,
       );
 
-      if (result != null && result.files.single.path != null) {
-        setState(() {
-          _selectedResume = File(result.files.single.path!);
-        });
-        Fluttertoast.showToast(msg: "Resume selected successfully");
+      if (result != null && result.files.isNotEmpty) {
+        final platformFile = result.files.first;
+        Uint8List? bytes = platformFile.bytes;
+        if (bytes == null && platformFile.path != null) {
+          try {
+            bytes = await File(platformFile.path!).readAsBytes();
+          } catch (_) {}
+        }
+
+        if (bytes != null && bytes.isNotEmpty) {
+          setState(() {
+            _selectedResumeBytes = bytes;
+            _selectedResumeName = platformFile.name;
+          });
+          Fluttertoast.showToast(msg: "Resume selected: ${platformFile.name}");
+        } else {
+          Fluttertoast.showToast(msg: "Could not read resume file data");
+        }
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: "Failed to pick Resume");
+      Fluttertoast.showToast(msg: "Failed to pick Resume: $e");
     }
   }
 
@@ -531,28 +550,24 @@ class RegisterPageState extends State<RegisterPage> {
       request.fields['cpassword'] = _cpasswordController.text;
       request.fields['confirm_password'] = _cpasswordController.text;
 
-      if (_selectedImage != null) {
-        if (await _selectedImage!.exists()) {
-          request.files.add(
-            await http.MultipartFile.fromPath(
-              'photo',
-              _selectedImage!.path,
-              filename: 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
-            ),
-          );
-        }
+      if (_selectedImageBytes != null && _selectedImageBytes!.isNotEmpty) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'photo',
+            _selectedImageBytes!,
+            filename: _selectedImageName ?? 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          ),
+        );
       }
 
-      if (_selectedResume != null) {
-        if (await _selectedResume!.exists()) {
-          request.files.add(
-            await http.MultipartFile.fromPath(
-              'resume',
-              _selectedResume!.path,
-              filename: 'resume_${DateTime.now().millisecondsSinceEpoch}.pdf',
-            ),
-          );
-        }
+      if (_selectedResumeBytes != null && _selectedResumeBytes!.isNotEmpty) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'resume',
+            _selectedResumeBytes!,
+            filename: _selectedResumeName ?? 'resume_${DateTime.now().millisecondsSinceEpoch}.pdf',
+          ),
+        );
       }
 
       try {
@@ -651,7 +666,8 @@ class RegisterPageState extends State<RegisterPage> {
     required String label,
     required IconData icon,
     required VoidCallback onPressed,
-    File? selectedFile,
+    required bool isSelected,
+    String? selectedFileName,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -662,11 +678,11 @@ class RegisterPageState extends State<RegisterPage> {
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           decoration: BoxDecoration(
             border: Border.all(
-              color: selectedFile != null ? AppColors.accentGreen : Colors.grey.shade300,
-              width: selectedFile != null ? 2 : 1,
+              color: isSelected ? AppColors.accentGreen : Colors.grey.shade300,
+              width: isSelected ? 2 : 1,
             ),
             borderRadius: BorderRadius.circular(12),
-            color: selectedFile != null
+            color: isSelected
                 ? AppColors.accentGreen.withOpacity(0.05)
                 : Colors.white,
           ),
@@ -679,8 +695,8 @@ class RegisterPageState extends State<RegisterPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  selectedFile != null ? Icons.check_circle : icon,
-                  color: selectedFile != null
+                  isSelected ? Icons.check_circle : icon,
+                  color: isSelected
                       ? AppColors.accentGreen
                       : AppColors.primaryBlue,
                   size: 24,
@@ -696,14 +712,14 @@ class RegisterPageState extends State<RegisterPage> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: selectedFile != null
+                        color: isSelected
                             ? AppColors.accentGreen
                             : Colors.grey.shade700,
                       ),
                     ),
-                    if (selectedFile != null)
+                    if (isSelected && selectedFileName != null)
                       Text(
-                        selectedFile.path.split('/').last,
+                        selectedFileName,
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.primaryBlue,
@@ -845,7 +861,8 @@ class RegisterPageState extends State<RegisterPage> {
                           label: "Upload Profile Photo",
                           icon: Icons.camera_alt,
                           onPressed: _chooseImage,
-                          selectedFile: _selectedImage,
+                          isSelected: _selectedImageBytes != null,
+                          selectedFileName: _selectedImageName,
                         ),
 
                         // Resume Upload
@@ -853,7 +870,8 @@ class RegisterPageState extends State<RegisterPage> {
                           label: "Upload Resume (PDF)",
                           icon: Icons.picture_as_pdf,
                           onPressed: _chooseResume,
-                          selectedFile: _selectedResume,
+                          isSelected: _selectedResumeBytes != null,
+                          selectedFileName: _selectedResumeName,
                         ),
                       ],
                     ),

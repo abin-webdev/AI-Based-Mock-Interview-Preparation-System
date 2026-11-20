@@ -181,6 +181,7 @@
 // }
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -259,17 +260,29 @@ class ViewVacancyPageState extends State<ViewVacancyPage> {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx'],
+        withData: true,
       );
 
-      if (result == null) {
+      if (result == null || result.files.isEmpty) {
         Fluttertoast.showToast(msg: "Please select a resume file");
         return;
       }
 
-      File file = File(result.files.single.path!);
+      final platformFile = result.files.first;
+      Uint8List? fileBytes = platformFile.bytes;
+      if (fileBytes == null && platformFile.path != null) {
+        try {
+          fileBytes = await File(platformFile.path!).readAsBytes();
+        } catch (_) {}
+      }
+
+      if (fileBytes == null || fileBytes.isEmpty) {
+        Fluttertoast.showToast(msg: "Could not read resume file data");
+        return;
+      }
 
       SharedPreferences sh = await SharedPreferences.getInstance();
-      String lid = sh.getString('lid') ?? '';
+      String lid = sh.getString('lid') ?? sh.getString('user_id') ?? '';
       final baseUrl = await ApiConfig.getBaseUrl();
       String apiUrl = ApiConfig.legacyApplyVacancy(baseUrl);
 
@@ -278,9 +291,12 @@ class ViewVacancyPageState extends State<ViewVacancyPage> {
       request.fields['vacancy_id'] = vacancyId;
 
       request.files.add(
-        await http.MultipartFile.fromPath(
+        http.MultipartFile.fromBytes(
           'resume',
-          file.path,
+          fileBytes,
+          filename: platformFile.name.isNotEmpty
+              ? platformFile.name
+              : 'resume_${DateTime.now().millisecondsSinceEpoch}.pdf',
         ),
       );
 

@@ -50,10 +50,15 @@ class LegacyUserLoginView(APIView):
 
         if getattr(user, 'role', '') == User.Role.COMPANY:
             company = getattr(user, 'company_profile', None)
-            if company and company.verification_status != CompanyProfile.VerificationStatus.APPROVED:
+            if company and company.verification_status == CompanyProfile.VerificationStatus.REJECTED:
                 return Response({
                     'status': 'no',
-                    'message': f'Company verification {company.verification_status}. Access restricted until approved.'
+                    'message': f'Company application was rejected. Reason: {company.rejection_reason or "Contact administrator"}.'
+                })
+            elif company and company.verification_status == CompanyProfile.VerificationStatus.SUSPENDED:
+                return Response({
+                    'status': 'no',
+                    'message': 'Company account has been suspended.'
                 })
 
         role_str = user.role.lower() if hasattr(user, 'role') else 'user'
@@ -67,7 +72,7 @@ class LegacyUserLoginView(APIView):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
 
-        return Response({
+        response_data = {
             'status': 'ok',
             'lid': str(user.id),
             'token': access_token,
@@ -75,7 +80,13 @@ class LegacyUserLoginView(APIView):
             'refresh': str(refresh),
             'type': role_str,
             'role': role_str
-        })
+        }
+        if getattr(user, 'role', '') == User.Role.COMPANY:
+            company = getattr(user, 'company_profile', None)
+            response_data['verification_status'] = company.verification_status if company else 'PENDING'
+            response_data['company_name'] = company.company_name if company else ''
+
+        return Response(response_data)
 
 
 @extend_schema(tags=['Flutter Compatibility'])

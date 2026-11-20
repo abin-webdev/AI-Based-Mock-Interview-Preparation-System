@@ -658,7 +658,7 @@ class _MyLoginPageState extends State<MyLoginPage> {
     String password = _passwordtextController.text.trim();
 
     if (uname.isEmpty || password.isEmpty) {
-      Fluttertoast.showToast(msg: 'Please enter both email and password');
+      Fluttertoast.showToast(msg: 'Please enter both email/username and password');
       return;
     }
 
@@ -668,12 +668,70 @@ class _MyLoginPageState extends State<MyLoginPage> {
 
     try {
       final baseUrl = await ApiConfig.getBaseUrl();
-      final urls = Uri.parse(ApiConfig.legacyUserLogin(baseUrl));
+      String? errorMessage;
 
+      // 1. Primary: REST Framework JWT Token Endpoint (/api/v1/auth/token/)
+      try {
+        final tokenUri = Uri.parse(ApiConfig.tokenObtain(baseUrl));
+        final tokenRes = await http.post(
+          tokenUri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'username': uname, 'password': password}),
+        ).timeout(const Duration(seconds: 25));
+
+        if (tokenRes.statusCode == 200) {
+          final tokenData = jsonDecode(tokenRes.body);
+          final access = tokenData['access']?.toString() ?? '';
+          final refresh = tokenData['refresh']?.toString() ?? '';
+          final user = tokenData['user'] ?? {};
+          final role = (user['role']?.toString() ?? 'CANDIDATE').toUpperCase();
+          final userId = user['id']?.toString() ?? '';
+          final email = user['email']?.toString() ?? uname;
+
+          await ApiClient().saveAuthSession(
+            access: access,
+            refresh: refresh,
+            role: role,
+            userId: userId,
+            email: email,
+          );
+
+          Fluttertoast.showToast(
+            msg: "Welcome back!",
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+          );
+
+          if (mounted) {
+            if (role == 'COMPANY') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const CompanyHomePage()),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const userHomePAge()),
+              );
+            }
+          }
+          return;
+        } else {
+          try {
+            final errBody = jsonDecode(tokenRes.body);
+            errorMessage = errBody['detail']?.toString() ?? errBody['message']?.toString();
+          } catch (_) {}
+        }
+      } catch (tokenErr) {
+        // Fallback to legacy endpoint if token endpoint had connection issue
+      }
+
+      // 2. Fallback: Legacy User Login Endpoint (/myapp/User_login/)
+      final legacyUri = Uri.parse(ApiConfig.legacyUserLogin(baseUrl));
       final response = await http.post(
-        urls,
+        legacyUri,
         body: {'Username': uname, 'Password': password},
-      ).timeout(const Duration(seconds: 30));
+      ).timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -715,14 +773,14 @@ class _MyLoginPageState extends State<MyLoginPage> {
           }
         } else {
           Fluttertoast.showToast(
-            msg: message.isNotEmpty ? message : 'Invalid username or password',
+            msg: message.isNotEmpty ? message : (errorMessage ?? 'Invalid username or password'),
             backgroundColor: Colors.red,
             textColor: Colors.white,
           );
         }
       } else {
         Fluttertoast.showToast(
-          msg: 'Server error: ${response.statusCode}',
+          msg: errorMessage ?? 'Server error: ${response.statusCode}',
           backgroundColor: Colors.red,
           textColor: Colors.white,
         );
